@@ -201,3 +201,13 @@ print(f"▶ 每日平均：{average:.2f}")
   
   - 未來可擴充預算規劃與支出預測功能，例如透過過去資料進行機器學習預測未來消費模式，提高記帳系統的智慧化與主動提示能力。
 
+
+ ## 參考資料
+
+- Python 官方文件：https://docs.python.org/
+- Pandas 官方手冊：https://pandas.pydata.org/docs/
+- Matplotlib 文件：https://matplotlib.org/stable/contents.html
+- Google Colab 說明：https://colab.research.google.com/
+- OpenPyXL 官方文件：https://openpyxl.readthedocs.io/
+
+
