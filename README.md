@@ -129,74 +129,58 @@ plt.show()
 
 ```
 ## 結果與分析
-- 箱型圖：顯示不同品種下各特徵的分布
+- 圓餅圖：顯示不同類別的總支出比例，可清楚顯示消費重心，例如使用者在「餐飲」或「交通」類別上的花費比例，幫助找出花費最大的類別。
 
 ```python
 
-for col in df.columns[:-1]:
-    plt.figure(figsize=(6, 4))
-    sns.boxplot(x='species', y=col, data=df)
-    plt.title(f'{col} 不同品種的分布')
-    plt.tight_layout()
-    plt.show()
+cat_sum = df_month.groupby("類別")["金額"].sum()
+cat_sum.plot(kind='pie', autopct='%1.1f%%', figsize=(6,6), title="各類別支出比例")
+plt.ylabel("")
+plt.show()
+
 
 ```
 
-- 折線圖：每個品種的特徵平均值趨勢
+- 折線圖：每日支出變化趨勢，幫助觀察消費的波動情況，是否有特定日期支出異常偏高，以便進一步檢討當日花費行為。
 
 ```python
 
-mean_features = df.groupby('species').mean()
-plt.figure(figsize=(8, 5))
-for species in mean_features.index:
-    plt.plot(mean_features.columns, mean_features.loc[species], marker='o', label=species)
-
-plt.title('各品種平均特徵值折線圖')
-plt.xlabel('特徵')
-plt.ylabel('平均值')
+daily_sum = df_month.groupby("日期")["金額"].sum()
+daily_sum.plot(kind='line', marker='o', title="每日支出金額")
+plt.xlabel("日期")
+plt.ylabel("金額")
 plt.xticks(rotation=45)
-plt.legend()
 plt.grid(True)
-plt.tight_layout()
 plt.show()
+
 
 ```
 
-- 長條圖：展示各特徵在不同品種的平均值
+- 每日上限超出檢查 : 當使用者每日總花費超過預設的 500 元上限時，系統會主動提示，協助控制日常開支。
 
 ```python
 
-mean_features.T.plot(kind='bar', figsize=(10, 6))
-plt.title('不同品種特徵平均值長條圖')
-plt.ylabel('平均值')
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.show()
+daily_limit = 500
+for day, total_amt in daily_sum.items():
+    if total_amt > daily_limit:
+        print(f" {day.date()} 花費 {total_amt} 超過上限 {daily_limit}")
+
 
 ```
 
-- 建立模型並輸出分類報告
+- 統計摘要 : 每月（或整體）總金額與平均花費可幫助掌握整體支出概況，作為是否需要調整消費習慣的依據。
 
 ```python
 
-X = df.iloc[:, :-1]
-y = df['species']
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+total = df_month["金額"].sum()
+days = df_month["日期"].nunique()
+average = total / days if days else 0
 
-model = LogisticRegression(max_iter=200)
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
+print(f"▶ 總金額：{total:.2f}")
+print(f"▶ 每日平均：{average:.2f}")
 
-print("\n🔹 分類報告：")
-print(classification_report(y_test, y_pred))
 
 ```
-- 分析結果
-  - petal 長度與寬度 是最具鑑別力的特徵，setosa 幾乎完全可依此分離。
-
-  - sepal 特徵 在三個品種中有部分重疊，辨識效果相對較差。
-
-  - versicolor 與 virginica 最易混淆，因特徵範圍較接近。
 
 ## 結論與建議
 - 結論:
