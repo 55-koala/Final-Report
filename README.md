@@ -97,15 +97,15 @@ days = df_month["日期"].nunique()
 average = total / days if days else 0
 
 print(f"\n統計資訊（{month_query if month_query else '全部'}）：")
-print(f"▶ 總金額：{total:.2f}")
-print(f"▶ 每日平均：{average:.2f}")
+print(f"總金額：{total:.2f}")
+print(f"每日平均：{average:.2f}")
 
 
 print("\n超出每日上限提醒：")
 daily_sum = df_month.groupby("日期")["金額"].sum()
 for day, total_amt in daily_sum.items():
     if total_amt > daily_limit:
-        print(f"⚠️ {day.date()} 花費 {total_amt} 超過上限 {daily_limit}")
+        print(f" {day.date()} 花費 {total_amt} 超過上限 {daily_limit}")
 
 filename = "記帳分析.xlsx"
 df.to_excel(filename, index=False)
