@@ -35,36 +35,100 @@
 
 - 數據處理與分析步驟 :
   - 1.接收使用者輸入的每日記帳資訊，包括：日期、類別、金額與備註
+    
   - 2.將輸入資料存入 DataFrame 並依照日期排序
+    
   - 3.使用者可選擇查詢特定月份或全部資料
+    
   - 4.統計查詢資料的總花費、每日平均花費
+    
   - 5.比對每日總支出是否超出設定上限（如每日上限為 500 元），並提供警示
+    
   - 6.將完整資料輸出為 Excel 檔，供使用者下載備份
+    
   - 7.使用圖表呈現「每日支出折線圖」與「類別支出比例圓餅圖」，輔助使用者理解消費習慣與分布情形
 
 ## 程式碼
 
 ```python
-!pip install pandas seaborn matplotlib scikit-learn --quiet
+!pip install openpyxl matplotlib
 
 import pandas as pd
-import seaborn as sns
+import datetime
 import matplotlib.pyplot as plt
-from sklearn.datasets import load_iris
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
+from IPython.display import display
+from google.colab import files
 
-iris = load_iris()
-df = pd.DataFrame(iris.data, columns=iris.feature_names)
-df['species'] = iris.target
-df['species'] = df['species'].map({i: name for i, name in enumerate(iris.target_names)})
+if 'records' not in globals():
+    records = []
 
-print("前五筆資料：")
-print(df.head())
+print("輸入一筆記帳資料：")
+date_str = input("日期（YYYY-MM-DD，預設今天）: ") or datetime.date.today().strftime('%Y-%m-%d')
+category = input("類別（如：餐飲、交通、娛樂）: ")
+amount = float(input("金額: "))
+note = input("備註（可空）: ")
 
-print("\n資料摘要：")
-print(df.describe())
+
+records.append({
+    "日期": pd.to_datetime(date_str),
+    "類別": category,
+    "金額": amount,
+    "備註": note
+})
+
+
+df = pd.DataFrame(records)
+df.sort_values("日期", inplace=True)
+
+
+daily_limit = 500
+
+print("\n全部記帳資料：")
+display(df)
+
+
+month_query = input("\n查詢月份（格式 YYYY-MM，留空=全部）: ")
+if month_query:
+    df['年月'] = df['日期'].dt.to_period("M").astype(str)
+    df_month = df[df['年月'] == month_query]
+else:
+    df_month = df.copy()
+
+
+total = df_month["金額"].sum()
+days = df_month["日期"].nunique()
+average = total / days if days else 0
+
+print(f"\n統計資訊（{month_query if month_query else '全部'}）：")
+print(f"▶ 總金額：{total:.2f}")
+print(f"▶ 每日平均：{average:.2f}")
+
+
+print("\n超出每日上限提醒：")
+daily_sum = df_month.groupby("日期")["金額"].sum()
+for day, total_amt in daily_sum.items():
+    if total_amt > daily_limit:
+        print(f"⚠️ {day.date()} 花費 {total_amt} 超過上限 {daily_limit}")
+
+filename = "記帳分析.xlsx"
+df.to_excel(filename, index=False)
+print(f"\n資料已儲存為：{filename}")
+files.download(filename)
+
+
+print("\n圖表分析：")
+cat_sum = df_month.groupby("類別")["金額"].sum()
+cat_sum.plot(kind='pie', autopct='%1.1f%%', figsize=(6,6), title="各類別支出比例")
+plt.ylabel("")
+plt.show()
+
+
+daily_sum.plot(kind='line', marker='o', title="每日支出金額")
+plt.xlabel("日期")
+plt.ylabel("金額")
+plt.xticks(rotation=45)
+plt.grid(True)
+plt.show()
 
 ```
 ## 結果與分析
